@@ -64,16 +64,21 @@ app.route('/SignIn').post(SignIn);
 
 // in the get function we ge all the parameter from the URL using req.query and the name of the parameter
 
+
+// need to add get total calorie for date
 app.route('/GetUser').get(GetUser);
 app.route('/GetProduct').get(GetProduct);
 app.route('/GetTopics').get(GetTopics);
 app.route('/GetCommentsForTopic').get(GetGetCommentsForTopic);
 app.route('/DeleteUser').get(DeleteUser);
 
+function EmptyResult(obj) {
+    return (Object.keys(obj).length === 0 );
+}
 
 function DeleteUser(req, res){
 
-console.log("In Delete User");
+    console.log("In Delete User");
     if(req.query.id == undefined)
     {
         res.send('Iligal command missing data!');
@@ -170,18 +175,17 @@ function SignIn(req, res){
     }
     else {
 
-        users.findOne({user_name : req.body.user_name ,mail : req.body.mail }, function (err, SignIndUser) {
+        users.findOne({user_name : req.body.user_name ,mail : req.body.mail }, function (err, Result) {
 
             if (err) {
                 console.log(err);
                 res.send(err);
             }
-            else if (searchedUser ) {
+            else if (EmptyResult(Result) ) {
                 res.send("User name :" + user_name + " mail : " + req.body.mail + "  Not Found!");
             }
             else {
-
-                res.json("_id: " + SignIn._id);
+                res.json("_id: " + Result._id);
             }
         });
     }
@@ -216,13 +220,14 @@ function GetProduct(req, res) {
 
 function GetProductByName(res, productName) {
      products.find({"product_name" : productName}, function (err, result) {
+         console.log(typeof (result));
          if (err) {
              console.log(err);
              res.send(err);
          }
          else {
-             console.log(result);
-             if (result) {
+
+             if (rEmptyResult(result)) {
                  console.log("Product name: " + productName + " not exist!");
                 res.send("Product name: " + productName + " not exist!");
              }
@@ -247,7 +252,7 @@ function UpdateUserWeight(req, res) {
                 console.log(err);
                 res.send(err);
             }
-            else if (doc) {
+            else if (EmptyResult(doc)) {
                 res.send('User Not Found!');
             }
             else {
@@ -283,7 +288,7 @@ function GetGetCommentsForTopic(req, res) {
                        console.log(err);
                        res.send(err);
                    }
-                   else if (docs) {
+                   else if (EmptyResult(docs)) {
                        res.send('For selcted Topic comments not found!');
                    }
                    else {
@@ -337,12 +342,12 @@ function GetUser(req, res) {
    }
    else {
        users.find({_id: req.query.id}, function (err, result) {
+           console.log(typeof (result));
                if (err) {
                    res.send(err);
                }
-               else {
-                   console.log(result);
-                   if (result == []) {
+               else{
+                   if (EmptyResult(result)) {
                        res.send('User Not Exist!');
                    }
                    else {
@@ -367,7 +372,7 @@ function AddMealProduct(req, res) {
             if (err) {
                 res.send(err);
             }
-            if (doc) {
+            if (EmptyResult(doc)) {
                 res.send("User Not Found")
             }
             else {
@@ -375,7 +380,7 @@ function AddMealProduct(req, res) {
                     if (err) {
                         res.send(err);
                     }
-                    if (doc) {
+                    if (EmptyResult(productdoc)) {
                         res.send("product Not Found")
                     }
                     else {
@@ -429,7 +434,7 @@ function AddCommentForTopic(req, res) {
             if (err) {
                 res.send(err);
             }
-            if (doc) {
+            if (EmptyResult(doc)) {
                 res.send("User Not Found")
             }
             else {
