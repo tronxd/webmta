@@ -1,4 +1,5 @@
-var mongoose     = require('mongoose')
+var mongoose     = require('mongoose');
+mongoose.Promise = global.Promise;
 mongoose.connect('mongodb://localhost:27017/myDiet',function(err,db){
     if(err)
     {
@@ -42,123 +43,96 @@ app.use('/', function(req, res, next){
 });
 
 
-//app.use('/users', users);
 
-// this var is to hold all the Ids so when we insert new record to table we get it from here ann add to the next ID
-var NextCommentsID = 1;
-var NextMealProductID = 1;
-var NextProductsID = 1;
-var NextTopicsID = 1;
-var NextUsersID = 1;
-
-
-DoBeforeServerStart();
 
 // in the post function we ge all the parameter from the body using req.body and the name of the parameter
 app.route('/AddUser').post(AddUser);
 app.route('/AddTopic').post(AddTopic);
 app.route('/AddCommentForTopic').post(AddCommentForTopic);
 app.route('/AddMealProduct').post(AddMealProduct);
-app.route('/UpdateUserWeight').post(UpdateUserWeight);
 app.route('/SignIn').post(SignIn);
 
-// in the get function we ge all the parameter from the URL using req.query and the name of the parameter
-
+// update
+app.route('/UpdateUserWeight').put(UpdateUserWeight);
 
 // need to add get total calorie for date
 app.route('/GetUser').get(GetUser);
-app.route('/GetProduct').get(GetProduct);
+app.route('/GetProducts').get(GetProduct);
 app.route('/GetTopics').get(GetTopics);
 app.route('/GetCommentsForTopic').get(GetGetCommentsForTopic);
 app.route('/DeleteUser').get(DeleteUser);
+app.route('/GetAllUsers').get(function (req,res) {
+   users.find({},function (err, users) {
+       res.json(users)
+   })
+
+});
 
 function EmptyResult(obj) {
+    console.log('in EmptyResult type: ' + typeof(obj) );
+
     return (Object.keys(obj).length === 0 );
 }
 
 function DeleteUser(req, res){
-
     console.log("In Delete User");
     if(req.query.id == undefined)
     {
         res.send('Iligal command missing data!');
     }
     else {
-        users.findOne({_id : req.query.id}).count( function (err, count) {
-
-            if (err) {
-                console.log(err);
-                res.send(err);
-            }
-            else if (count == 0) {
-                res.send('User Not Found!');
-            }
-            else {
-
-                removeAllUserData(res, req.query.id);
-            }
-        });
+        ValidateUserAndPreformAction(req.query.id, req, res , removeAllUserData);
     }
 }
 
-
-function removeAllUserData(res , userId) {
+function removeAllUserData(req , res ,user) {
+    userId = req.query.id;
     comments.remove({_id: userId}, function (err) {
-        if (!err)
-        {
+        if (!err) {
             console.log('All user comments deleted succesfully');
         }
-        else
-        {
+        else {
             res.send("Err");
             console.log('Error...');
         }
     });
 
     comments.remove({topic_id: userId}, function (err) {
-        if (!err)
-        {
+        if (!err) {
             console.log('All comments for user topics deleted succesfully');
         }
-        else
-        {
+        else {
             res.send("Err");
             console.log('Error...');
         }
     });
 
     mealProduct.remove({_id: userId}, function (err) {
-        if (!err)
-        {
+        if (!err) {
             console.log('All user mealProduct deleted succesfully');
         }
-        else
-        {
+        else {
             res.send("Err");
             console.log('Error...');
         }
     });
 
     topics.remove({_id: userId}, function (err) {
-        if (!err)
-        {
+        if (!err) {
             console.log('All user topics deleted succesfully');
         }
-        else
-        {
+        else {
             res.send("Err");
             console.log('Error...');
         }
     });
-    users.remove({_id: userId}, function (err) {
-        if (!err)
-        {
 
+    users.remove({_id: userId}, function (err) {
+        if (!err) {
             console.log('All user data deleted succesfully');
             res.send('All user data deleted succesfully');
         }
-        else
-        {
+        else {
             res.send("Err");
             console.log('Error...');
         }
@@ -169,23 +143,21 @@ function removeAllUserData(res , userId) {
 //
 function SignIn(req, res){
     console.log("In SignIn");
-    if((req.body.user_name == undefined) ||(req.body.mail == undefined))
-    {
+    if((req.body.Password == undefined) ||(req.body.mail == undefined)) {
         res.send("Iligal command missing data!");
     }
     else {
-
-        users.findOne({user_name : req.body.user_name ,mail : req.body.mail }, function (err, Result) {
-
+        users.find({mail : req.body.mail, Password : req.body.Password  }, function (err, currentUser) {
+            console.log(currentUser);
             if (err) {
                 console.log(err);
                 res.send(err);
             }
-            else if (EmptyResult(Result) ) {
-                res.send("User name :" + user_name + " mail : " + req.body.mail + "  Not Found!");
+            else if (EmptyResult(currentUser) ) {
+                res.send("User mail :" + req.body.mail + " password : " + req.body.Password + "  Not Found!");
             }
             else {
-                res.json("_id: " + Result._id);
+                res.json(currentUser);
             }
         });
     }
@@ -195,31 +167,16 @@ function SignIn(req, res){
 // we ned to check the user exist
 function GetProduct(req, res) {
     console.log("In Get Product");
-    if((req.query.id == undefined) || (req.query.product_name == undefined))
-    {
+    if((req.query.id == undefined) || (req.query.product_name == undefined)) {
         res.send('Iligal command missing data!');
     }
     else{
-        users.findOne({_id : req.query.id}).count( function (err, count) {
-
-            if (err) {
-                console.log(err);
-                res.send(err);
-            }
-            else if (count == 0) {
-                res.send('User Not Found!');
-            }
-            else {
-
-                GetProductByName(res, req.query.product_name);
-            }
-        });
+        ValidateUserAndPreformAction(req.query.id , req, res, GetProductByName );
     }
-
 }
 
-function GetProductByName(res, productName) {
-     products.find({"product_name" : productName}, function (err, result) {
+function GetProductsByName(res, req, user) {
+     products.find({product_name : /req.query.product_name/}, function (err, result) {
          console.log(typeof (result));
          if (err) {
              console.log(err);
@@ -227,12 +184,12 @@ function GetProductByName(res, productName) {
          }
          else {
 
-             if (rEmptyResult(result)) {
+             if (EmptyResult(result)) {
                  console.log("Product name: " + productName + " not exist!");
                 res.send("Product name: " + productName + " not exist!");
              }
              else {
-                 res.toJSON(result);
+                 res.send(result);
              }
          }
      });
@@ -246,22 +203,22 @@ function UpdateUserWeight(req, res) {
         res.send('Iligal command missing data!');
     }
     else{
-        users.findone({_id : req.query.id},  function (err, doc) {
 
-            if (err) {
-                console.log(err);
-                res.send(err);
-            }
-            else if (EmptyResult(doc)) {
-                res.send('User Not Found!');
-            }
-            else {
-                doc.current_weight = req.query.current_weight;
-                doc.last_wieght_date = new Date();
-                doc.save();
-                res.send('New Weight changed!');
-            }
-        });
+        users.findOneAndUpdate({_id : req.query.id}, {current_weight : req.query.current_weight, last_wieght_date :  Date.now()  },
+                {new :true}, function(err, user){
+                console.log('in UpdateUserWeight callback found user: ' + user);
+                if (err){
+                    console.log(err);
+                    res.send(err);
+                }
+                else if(user == null || EmptyResult(user)) {
+                    res.send('User not id:'  + req.query.id + ' Found')
+                }
+                else {
+                    return res.send(user);
+                }
+            });
+
     }
 }
 
@@ -272,30 +229,21 @@ function GetGetCommentsForTopic(req, res) {
         res.send('Iligal command missing data!');
     }
     else {
-        users.findOne({_id : req.query.id}).count( function (err, count) {
-
-            if (err) {
-                console.log(err);
-                res.send(err);
-            }
-            else if (count == 0) {
-                res.send('User Not Found!');
-            }
-            else {
-
-               comments.find({"topic_id" : req.query.topic_id }).sort({date : -1}).exec(function (commentsErr, docs) {
-                   if (err) {
-                       console.log(err);
-                       res.send(err);
+        ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
+               comments.find({topic_id : req.query.topic_id }).sort({date : -1}).exec(function (commentsErr, docs) {
+                   console.log("In GetGetCommentsForTopic callback ");
+                   if (commentsErr) {
+                       console.log(commentsErr);
+                       res.send(commentsErr);
                    }
                    else if (EmptyResult(docs)) {
                        res.send('For selcted Topic comments not found!');
                    }
                    else {
-                      res.toJSON(docs)
+                       console.log('all fine send back');
+                      res.send(docs);
                    }
                });
-            }
         });
     }
 }
@@ -308,27 +256,18 @@ function GetTopics(req, res) {
         res.send('Iligal command missing data!');
     }
     else {
-        users.findOne({_id : req.query.id}).count( function (err, count) {
-
-            if (err) {
-                console.log(err);
-                res.send(err);
-            }
-            else if (count == 0) {
-                res.send('User Not Found!');
-            }
-            else {
-
+        ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
                 topics.find({}).sort({date : -1}).limit(20).exec(function (commentsErr, docs) {
-                    if (err) {
-                        console.log(err);
-                        res.send(err);
+                    console.log("In Get Topics callback");
+                    console.log(docs);
+                    if (commentsErr) {
+                        console.log(commentsErr);
+                        res.send(commentsErr);
                     }
                     else {
-                        res.toJSON(docs)
+                        res.send(docs);
                     }
                 });
-            }
         });
     }
 }
@@ -341,22 +280,7 @@ function GetUser(req, res) {
        res.send('Iligal command missing data!');
    }
    else {
-       users.find({_id: req.query.id}, function (err, result) {
-           console.log(typeof (result));
-               if (err) {
-                   res.send(err);
-               }
-               else{
-                   if (EmptyResult(result)) {
-                       res.send('User Not Exist!');
-                   }
-                   else {
-
-                       res.json(result);
-                   }
-               }
-           }
-       );
+       ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user) {res.json(user); });
    }
 }
 // in this function we get:
@@ -364,18 +288,9 @@ function GetUser(req, res) {
 // need to calculate the calorie amout amount * calorie_per_Unit_measure from products table
 function AddMealProduct(req, res) {
     console.log("In Add Meal Product");
-    if(! IsAllDataForAddMealExist(req)){
-        res.send("missing data Add meal failed!");
-    }
-    else {
-        users.find({_id : req.body.user_id}, function (err, doc) {
-            if (err) {
-                res.send(err);
-            }
-            if (EmptyResult(doc)) {
-                res.send("User Not Found")
-            }
-            else {
+    if(IsAllDataForAddMealExist(req)){
+        ValidateUserAndPreformAction(req.body.user_id, req, res,
+            function(req , res, user){
                 products.find({_id: product_id}, function (err, productdoc) {
                     if (err) {
                         res.send(err);
@@ -386,8 +301,6 @@ function AddMealProduct(req, res) {
                     else {
                         console.log('adding new product meal to user id ' + req.body.user_id);
                         var MealProductParams = new mealProduct();      // create a new instance of the mealProduct model
-                        MealProductParams._id = NextMealProductID.toString();
-                        NextMealProductID++;
                         MealProductParams.date = Date.now();
                         var mealNumber = 1;
                         if (req.body.meal_number != undefined) {
@@ -395,24 +308,27 @@ function AddMealProduct(req, res) {
                         }
                         MealProductParams.meal_number = mealNumber;
                         MealProductParams.user_id = req.body.user_id;
-                        MealProductParams.user_name = doc.user_name;
+                        MealProductParams.user_name = user.user_name;
                         MealProductParams.product_id = req.body.product_id;
                         MealProductParams.product_name = req.body.product_name;
                         MealProductParams.calorie_per_Unit_measure = productdoc.calorie_per_Unit_measure;
+                        MealProductParams.unit_measure_caption = productdoc.unit_measure_caption
+                        MealProductParams.unit_measure =  productdoc.unit_measure
                         MealProductParams.amount = req.body.amount;
-                        MealProductParams.total_calories = req.body.amount * productdoc.calorie_per_Unit_measure;
+                        MealProductParams.total_calories = (req.body.amount / productdoc.calorie_per_Unit_measure) * productdoc.calorie_per_Unit_measure;
                         MealProductParams.save(function (err) {
                             if (err) {
-                                NextMealProductID--;
                                 res.send(err);
                             }
-
-                            res.json({message: 'New product meal added'});
+                            else {
+                                res.json({message: 'New product meal added'});
+                            }
                         });
                     }
                 });
-            }
-        });
+            });
+    } else {
+        res.send("missing data Add meal failed!");
     }
 }
 
@@ -426,50 +342,39 @@ function IsAllDataForAddMealExist(req) {
 // in this function we Topic ID, User ID and Text and adding it to the Comments need to insert date
 function AddCommentForTopic(req, res) {
     console.log("In Add Comment For Topic");
-    if (!IsAllDataForAddCommentForTopicExist(req)) {
-        res.send("missing data Add meal failed!");
-    }
-    else {
-        users.find({_id: req.body.user_id}, function (err, doc) {
-            if (err) {
-                res.send(err);
-            }
-            if (EmptyResult(doc)) {
-                res.send("User Not Found")
-            }
-            else {
-                topics.findOne({_id: req.body.topic_id}).count(function (err, count) {
+    if (IsAllDataForAddCommentForTopicExist(req)) {
+        ValidateUserAndPreformAction(req.body.user_id, req, res,
+            function (req, res, user) {
+                topics.find({_id: req.body.topic_id}, function (err, document) {
                     if (err) {
                         res.send(err);
                     }
-                    else if(count == 0){
+                    else if (EmptyResult(document)) {
                         res.send("Topic Id:" + req.body.topic_id + " Not Found");
                     }
-                    else{
+                    else {
                         var commentsParams = new comments();
-                        commentsParams._id  = NextCommentsID.toString();
-                        NextCommentsID++;
                         commentsParams.topic_id = req.body.topic_id;
                         commentsParams.user_id = req.body.user_id;
-                        commentsParams.user_name = doc.user_name;
+                        commentsParams.user_name = user.user_name;
                         commentsParams.comment_text = req.body.text;
                         commentsParams.date = Date.now();
                         commentsParams.save(function (err) {
                             if (err) {
-                                NextCommentsID--;
                                 res.send(err);
                             }
-
-                            res.json({message: 'New comment added'});
+                            else {
+                                res.json({message: 'New comment added'});
+                            }
                         });
                     }
-
                 });
-            }
-        });
-
+            });
+    } else {
+        res.send("missing data Add meal failed!");
     }
 }
+
 
 function IsAllDataForAddCommentForTopicExist(req){
     if((req.body.user_id == undefined)||( req.body.topic_id == undefined)){
@@ -481,108 +386,120 @@ function IsAllDataForAddCommentForTopicExist(req){
 //in this function we user ID and text and insert in to the topics
 function AddTopic(req, res) {
     console.log("In Add Topic");
-    if((req.body.user_id == undefined) || (req.body.title == undefined) || (req.body.text == undefined)){
-        res.send("missing data Add topic failed!");
-    }
-    else {
-        users.find({_id: req.body.user_id}, function (err, doc) {
-            if (err) {
-                res.send(err);
-            }
-            if (doc) {
-                res.send("User Not Found")
-            }
-            else {
+    if ((req.body.user_id != undefined) && (req.body.title != undefined) && (req.body.text != undefined)) {
+            ValidateUserAndPreformAction(req.body.user_id, req, res, function (req, res, user) {
+                con
                 var topicsParams = new topics();
-                topicsParams._id = NextTopicsID.toString();
-                NextTopicsID++;
-                topicsParams.topic_id = req.body.topic_id;
                 topicsParams.user_id = req.body.user_id;
-                topicsParams.user_name = doc.user_name;
+                topicsParams.user_name = user.user_name;
                 topicsParams.title = req.body.title;
                 topicsParams.topic_text = req.body.text;
                 topicsParams.date = Date.now();
                 topicsParams.save(function (err) {
                     if (err) {
-                        NextTopicsID--;
                         res.send(err);
                     }
-
-                    res.json({message: 'New topic added'});
+                    else {
+                        res.json({message: 'New topic added'});
+                    }
                 });
-
-
-            }
-        });
+            });
     }
+    else {
+        res.send("missing data Add topic failed!");
+           }
 
 }
 // in this function we get all the user data and check if not exis by user name or email and return the user id in the result
 function AddUser(req, res) {
     console.log('In Add user');
-    if(! IsAllDataForAddingUser(req)) {
-        res.send("missing data Add user failed!");
-    }
-    else {
+    console.log((req.body));
+    if(IsAllDataForAddingUser(req)) {
         var newMail = req.body.mail;
         console.log('mail = ' + newMail);
         users.find({mail: newMail}).count(function (err, count) {
             if (err) {
                 res.send(err);
             }
-            // Add New User
-            if (count == 0) {
-                console.log('mail = ' + newMail + ' not Found');
-                var UserParams = new users();      // create a new instance of the Stock model
+            else {// Add New User
+                if (count == 0) {
+                    console.log('mail = ' + newMail + ' not Found');
 
-                UserParams._id = NextUsersID.toString();
-                NextUsersID++;
-                UserParams.user_name = req.body.user_name;
-                UserParams.mail = newMail;
-                UserParams.Password = req.body.Password;
-                UserParams.Address.street = req.body.Address.street;
-                UserParams.Address.city = req.body.Address.city;
-                UserParams.Address.state = req.body.Address.state;
-                UserParams.Address.country = req.body.Address.country;
-                UserParams.diet_start_date = Date.now();
-                UserParams.target_calories_for_day = req.body.target_calories_for_day;
-                UserParams.start_weight = req.body.start_weight;
-                UserParams.target_weight = req.body.target_weight;
-                UserParams.current_weight = req.body.current_weight;
-                UserParams.last_wieght_date = Date.now();
-                UserParams.height = req.body.height;
-                UserParams.sex = req.body.sex;
-                UserParams.age = req.body.age;
-
-                // save the stock and check for errors
-                UserParams.save(function (err) {
-                    if (err) {
-                        NextUsersID--;
-                        res.send(err);
-                    }
-
-                    res.json({message: 'New User create!'});
-                });
-            }
-            else // user Exist
-            {
-                console.log("Mail: " + newMail + " Already exists");
-                res.send({message: ' Mail: ' + newMail + ' Already exists'});
-
+                    var UserParams = new users();      // create a new instance of the Stock model
+                    UserParams.user_name = req.body.user_name;
+                    UserParams.mail = newMail;
+                    UserParams.Password = req.body.Password;
+                    UserParams.Address.street = req.body.Address.street;
+                    UserParams.Address.city = req.body.Address.city;
+                    UserParams.Address.state = req.body.Address.state;
+                    UserParams.Address.country = req.body.Address.country;
+                    UserParams.diet_start_date = Date.now();
+                    UserParams.target_calories_for_day = req.body.target_calories_for_day;
+                    UserParams.start_weight = req.body.start_weight;
+                    UserParams.target_weight = req.body.target_weight;
+                    UserParams.current_weight = req.body.start_weight;
+                    UserParams.last_wieght_date = Date.now();
+                    UserParams.height = req.body.height;
+                    UserParams.sex = req.body.sex;
+                    UserParams.age = req.body.age;
+                    // save the stock and check for errors
+                    UserParams.save(function (err) {
+                        if (err) {
+                            res.send(err);
+                        }
+                        else {
+                            res.json({message: 'New User create!'});
+                        }
+                    });
+                }
+                else {// user Exist
+                    console.log("Mail: " + newMail + " Already exists");
+                    res.send({message: ' Mail: ' + newMail + ' Already exists'});
+                }
             }
         });
+    }
+    else {
+        res.send("missing data Add user failed!");
     }
 }
 
 function IsAllDataForAddingUser(req) {
     if((req.body.user_name == undefined) || (req.body.mail == undefined) ||(req.body.Password == undefined) ||(req.body.Address.street == undefined) ||
-    (req.body.Address.city == undefined) ||(req.bodyy.Address.state == undefined) ||(req.body.Address.country == undefined) ||(req.body.target_calories_for_day == undefined) ||
-    (req.body.start_weight == undefined) ||(req.body.target_weight == undefined) ||(req.body.current_weight == undefined) ||(req.body.height == undefined) ||
+    (req.body.Address.city == undefined) ||(req.body.Address.state == undefined) ||(req.body.Address.country == undefined) ||(req.body.target_calories_for_day == undefined) ||
+    (req.body.start_weight == undefined) ||(req.body.target_weight == undefined) ||(req.body.height == undefined) ||
     (req.body.sex == undefined) ||(req.body.age == undefined) ){
 
         return false;
     }
+
     return true;
+}
+
+function ValidateUserAndPreformAction(id, req, res, resultCallbackFunction) {
+     console.log('in ValidateUserAndPreformAction sended id ' +  id);
+    users.find({_id: id}, function (err, selectedUser) {
+        if (err) {
+
+            if (err.name == "CastError" && err.kind == "ObjectId") {
+                res.send("the id sent in the input is in illegal format please Sign In again to get the corrct id in the correct format.\nThanks.");
+            }
+            else {
+                res.send(err);
+            }
+        }
+        else {
+            if (EmptyResult(selectedUser)) {
+                res.send("User Not Found")
+            }
+            else {
+
+                if (resultCallbackFunction) {
+                    resultCallbackFunction(req, res, selectedUser);
+                }
+            }
+        }
+    });
 }
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -591,13 +508,6 @@ app.use(function(req, res, next) {
   next(err);
 });
 
-// TOOOOOOOOOOOOOOOOOOOOO DDOOOOOO
-// 1. we need to fill the Products table on server load we need to add JSON with some pruduct and insert it to the table
-// 2. on load sevice need to fix counters (IDs)
-function  DoBeforeServerStart() {
-    console.log('in DoBeforeServerStart');
-
-}
 
 // error handlers
 
