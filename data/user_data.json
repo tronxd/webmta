@@ -1,0 +1,140 @@
+[{
+    user_name : "Naor David",
+    mail : "tron47@gmail.com",
+    Password : "123456",
+    Address : {
+        street : "HaPodim 45",
+        city: "Ramat Gan",
+        state: "Center",
+        country: "Israel"
+    },
+    diet_start_date   : ISODate("2016-09-01T00:00:00Z"),
+    target_calories_for_day : 1500,
+    start_weight : 80,
+    target_weight : 70,
+    current_weight: 75,
+    last_wieght_date : ISODate("2016-09-15T00:00:00Z"),
+    height: 175,
+    sex: "Male",
+    age: 24
+},
+{
+    user_name : "Adi Azran",
+    mail : "adiazran@gmail.com",
+    Password : "abcdef",
+    Address : {
+        street : "Sokolov 32",
+        city: "Rehovot",
+        state: "Center",
+        country: "Israel"
+    },
+    diet_start_date   : ISODate("2016-08-01T00:00:00Z"),
+    target_calories_for_day : 2500,
+    start_weight : 85,
+    target_weight : 75,
+    current_weight: 80,
+    last_wieght_date : ISODate("2016-08-15T00:00:00Z"),
+    height: 180,
+    sex: "Male",
+    age: 28
+},
+{
+    user_name : "Yoni Cohen",
+    mail : "yoni@gmail.com",
+    Password : "password",
+    Address : {
+        street : "Haroovim 11",
+        city: "Kiryat Yam",
+        state: "North",
+        country: "Israel"
+    },
+    diet_start_date   : ISODate("2016-07-01T00:00:00Z"),
+    target_calories_for_day : 1500,
+    start_weight : 90,
+    target_weight : 70,
+    current_weight: 80,
+    last_wieght_date : ISODate("2016-07-15T00:00:00Z"),
+    height: 178,
+    sex: "Male",
+    age: 24
+},
+{
+    user_name : "Shai Avital",
+    mail : "shai@gmail.com",
+    Password : "sisma",
+    Address : {
+        street : "HaEla 4",
+        city: "Kiryat Motzkin",
+        state: "North",
+        country: "Israel"
+    },
+    diet_start_date   : ISODate("2016-11-01T00:00:00Z"),
+    target_calories_for_day : 1200,
+    start_weight : 80,
+    target_weight : 65,
+    current_weight: 72,
+    last_wieght_date : ISODate("2016-11-15T00:00:00Z"),
+    height: 170,
+    sex: "Male",
+    age: 22
+},
+{
+    user_name : "Tal Lasri",
+    mail : "tallasri@gmail.com",
+    Password : "dafakta",
+    Address : {
+        street : "Rager 14",
+        city: "Beer Sheva",
+        state: "South",
+        country: "Israel"
+    },
+    diet_start_date   : ISODate("2016-03-01T00:00:00Z"),
+    target_calories_for_day : 2500,
+    start_weight : 90,
+    target_weight : 75,
+    current_weight: 85,
+    last_wieght_date : ISODate("2016-03-15T00:00:00Z"),
+    height: 180,
+    sex: "Male",
+    age: 25
+},
+{
+    user_name : "Barack Obama",
+    mail : "obama@whitehouse.com",
+    Password : "NSAEncryptedPassword",
+    Address : {
+        street : "1600 Pennsylvania Ave NW",
+        city: "Washington",
+        state: "DC",
+        country: "USA"
+    },
+    diet_start_date   : ISODate("2016-01-01T00:00:00Z"),
+    target_calories_for_day : 1700,
+    start_weight : 85,
+    target_weight : 70,
+    current_weight: 76,
+    last_wieght_date : ISODate("2016-01-15T00:00:00Z"),
+    height: 182,
+    sex: "Male",
+    age: 50
+},
+{
+    user_name : "Hilary Clinton",
+    mail : "hilary@whitehouse.com",
+    Password : "bullshit",
+    Address : {
+        street : "5th Avenue",
+        city: "New York City",
+        state: "New York",
+        country: "USA"
+    },
+    diet_start_date   : ISODate("2016-10-01T00:00:00Z"),
+    target_calories_for_day : 1100,
+    start_weight : 70,
+    target_weight : 60,
+    current_weight: 65,
+    last_wieght_date : ISODate("2016-10-15T00:00:00Z"),
+    height: 165,
+    sex: "Female",
+    age: 55
+}]
