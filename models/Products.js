@@ -2,12 +2,13 @@ var mongoose     = require('mongoose');
 var Schema       = mongoose.Schema;
 
 var Product = new Schema({
-    _id   : String,
     product_name : String,
+    unit_measure_caption: String,
     unit_measure : String,
     calorie_per_Unit_measure : Number,
     description : String
 });
 
+Product.index({product_name : 1});
 module.exports = mongoose.model('product', Product);
 
