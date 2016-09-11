@@ -2,7 +2,6 @@ var mongoose     = require('mongoose');
 var Schema       = mongoose.Schema;
 
 var Users = new Schema({
-    _id   : String,
     user_name : String,
     mail : String,
     Password : Number,
@@ -22,7 +21,7 @@ var Users = new Schema({
     sex: String,
     age: Number
 
-
 });
 
+Users.index({ mail:1 , Password : 1 });
 module.exports = mongoose.model('users', Users);
