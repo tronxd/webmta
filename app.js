@@ -51,6 +51,7 @@ app.route('/AddTopic').post(AddTopic);
 app.route('/AddCommentForTopic').post(AddCommentForTopic);
 app.route('/AddMealProduct').post(AddMealProduct);
 app.route('/SignIn').post(SignIn);
+app.route('/AddProduct').post(AddProduct);
 
 // update
 app.route('/UpdateUserWeight').put(UpdateUserWeight);
@@ -61,6 +62,9 @@ app.route('/GetProducts').get(GetProduct);
 app.route('/GetTopics').get(GetTopics);
 app.route('/GetCommentsForTopic').get(GetGetCommentsForTopic);
 app.route('/DeleteUser').get(DeleteUser);
+
+app.route('/GetUserCalorieOfDate').get(GetUserCalorieOfDate);
+
 app.route('/GetAllUsers').get(function (req,res) {
    users.find({},function (err, users) {
        res.json(users)
@@ -72,6 +76,44 @@ function EmptyResult(obj) {
     console.log('in EmptyResult type: ' + typeof(obj) );
 
     return (Object.keys(obj).length === 0 );
+}
+
+
+function GetUserCalorieOfDate(req, res) {
+    console.log("In GetUserCalorieOfDate");
+    if((req.query.id == undefined) || (req.query.date_from == undefined) || (req.query.date_to == undefined))
+    {
+        res.send('Iligal command missing data!');
+    }
+    else {
+        ValidateUserAndPreformAction(req.query.id, req, res , getAllUserCalorieOfDate);
+    }
+}
+
+function getAllUserCalorieOfDate(req, res, user) {
+  console.log(req.query.date_to + '    ' + req.query.date_from);
+    console.log(new Date(req.query.date_to));
+    mealProduct.find({user_id : req.query.id , date : {$lt: new Date(req.query.date_to)}, date: {$gt: new Date(req.query.date_from)  } },function (err, allMeals) {
+        console.log(req.query.date_from);
+        console.log(req.query.date_to);
+        if (err) {
+            console.log(err);
+            res.send(err);
+        }
+        else if (EmptyResult(allMeals) ) {
+            res.send("Not Found records in this dates!");
+        }
+        else {
+            for(var blabla in allMeals){
+                console.log('aaaadddddddcccc');
+                console.log(allMeals[blabla]);
+            }
+            res.send(allMeals);
+        }
+
+    });
+
+
 }
 
 function DeleteUser(req, res){
@@ -171,22 +213,24 @@ function GetProduct(req, res) {
         res.send('Iligal command missing data!');
     }
     else{
-        ValidateUserAndPreformAction(req.query.id , req, res, GetProductByName );
+        ValidateUserAndPreformAction(req.query.id , req, res, GetProductsByName );
     }
 }
 
-function GetProductsByName(res, req, user) {
-     products.find({product_name : /req.query.product_name/}, function (err, result) {
+function GetProductsByName(req, res, user) {
+    console.log('in GetProductsByName111' + req.query.product_name);
+     products.find({product_name : new RegExp( req.query.product_name, 'i')}, function (err, result) {
+         console.log('after find');
          console.log(typeof (result));
          if (err) {
              console.log(err);
              res.send(err);
          }
          else {
-
-             if (EmptyResult(result)) {
-                 console.log("Product name: " + productName + " not exist!");
-                res.send("Product name: " + productName + " not exist!");
+             console.log(result);
+                 if (EmptyResult(result)) {
+                 console.log("Product name: " + req.query.product_name + " not exist!");
+                res.send("Product name: " + req.query.product_name + " not exist!");
              }
              else {
                  res.send(result);
@@ -283,6 +327,41 @@ function GetUser(req, res) {
        ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user) {res.json(user); });
    }
 }
+
+function AddProduct(req, res) {
+    console.log("In Add Product");
+    if (! IsAllDataForAddPruductExist(req)) {
+        res.send('Iligal command missing data!');
+    }else {
+        var ProductParam = new products();
+        ProductParam.product_name = req.body.product_name;
+        ProductParam.unit_measure_caption = req.body.unit_measure_caption;
+        ProductParam.unit_measure = req.body.unit_measure;
+        ProductParam.calorie_per_Unit_measure = req.body.calorie_per_Unit_measure;
+        ProductParam.description = req.body.description;
+        ProductParam.save(function (err) {
+            if (err) {
+                res.send(err);
+            }
+            else {
+                res.send("product add");
+            }
+        });
+
+    }
+
+}
+
+function IsAllDataForAddPruductExist(req)
+{
+    if( ( req.body.product_name == undefined) || (req.body.unit_measure_caption == undefined )||
+        (req.body.unit_measure == undefined )|| (req.body.calorie_per_Unit_measure == undefined )||
+        (req.body.description == undefined ))
+    {
+        return false;
+    }
+    return true;
+}
 // in this function we get:
 // User ID, product ID , amount and number of meal and we adding it to the mealProduct table
 // need to calculate the calorie amout amount * calorie_per_Unit_measure from products table
@@ -291,6 +370,8 @@ function AddMealProduct(req, res) {
     if(IsAllDataForAddMealExist(req)){
         ValidateUserAndPreformAction(req.body.user_id, req, res,
             function(req , res, user){
+
+                var product_id = req.body.product_id;
                 products.find({_id: product_id}, function (err, productdoc) {
                     if (err) {
                         res.send(err);
@@ -300,6 +381,8 @@ function AddMealProduct(req, res) {
                     }
                     else {
                         console.log('adding new product meal to user id ' + req.body.user_id);
+                        console.log(Object.keys(productdoc));
+                        console.log(productdoc[0]);
                         var MealProductParams = new mealProduct();      // create a new instance of the mealProduct model
                         MealProductParams.date = Date.now();
                         var mealNumber = 1;
@@ -311,11 +394,11 @@ function AddMealProduct(req, res) {
                         MealProductParams.user_name = user.user_name;
                         MealProductParams.product_id = req.body.product_id;
                         MealProductParams.product_name = req.body.product_name;
-                        MealProductParams.calorie_per_Unit_measure = productdoc.calorie_per_Unit_measure;
-                        MealProductParams.unit_measure_caption = productdoc.unit_measure_caption
-                        MealProductParams.unit_measure =  productdoc.unit_measure
+                        MealProductParams.calorie_per_Unit_measure = productdoc[0].calorie_per_Unit_measure;
+                        MealProductParams.unit_measure_caption = productdoc[0].unit_measure_caption;
+                        MealProductParams.unit_measure =  productdoc[0].unit_measure;
                         MealProductParams.amount = req.body.amount;
-                        MealProductParams.total_calories = (req.body.amount / productdoc.calorie_per_Unit_measure) * productdoc.calorie_per_Unit_measure;
+                        MealProductParams.total_calories =(req.body.amount / productdoc[0].unit_measure) * productdoc[0].calorie_per_Unit_measure ;
                         MealProductParams.save(function (err) {
                             if (err) {
                                 res.send(err);
