@@ -2,7 +2,6 @@ var mongoose     = require('mongoose');
 var Schema       = mongoose.Schema;
 
 var Comments = new Schema({
-    _id   : String,
     topic_id : String,
     user_id : String,
     user_name : String,
@@ -10,5 +9,6 @@ var Comments = new Schema({
     date : Date
 });
 
+Comments.index({topic_id : 1});
 module.exports = mongoose.model('comments', Comments);
 
