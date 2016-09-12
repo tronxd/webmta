@@ -218,16 +218,12 @@ function GetProduct(req, res) {
 }
 
 function GetProductsByName(req, res, user) {
-    console.log('in GetProductsByName111' + req.query.product_name);
      products.find({product_name : new RegExp( req.query.product_name, 'i')}, function (err, result) {
-         console.log('after find');
-         console.log(typeof (result));
          if (err) {
              console.log(err);
              res.send(err);
          }
          else {
-             console.log(result);
                  if (EmptyResult(result)) {
                  console.log("Product name: " + req.query.product_name + " not exist!");
                 res.send("Product name: " + req.query.product_name + " not exist!");
