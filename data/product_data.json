@@ -1,0 +1,63 @@
+[{   
+    product_name : "Pizza",
+    unit_measure_caption: "Slice",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 200,
+    description : "a flatbread generally topped with tomato sauce and cheese and baked in an oven"
+},
+{   
+    product_name : "Hummus",
+    unit_measure_caption: "Plate",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 500,
+    description : "cooked, mashed chickpeas or other beans, blended with tahini, olive oil, lemon juice, salt and garlic"
+},
+{   
+    product_name : "Rice",
+    unit_measure_caption: "Cup",
+    unit_measure : 0.5,
+    calorie_per_Unit_measure : 100,
+    description : "half a cup of rice grains"
+},
+{   
+    product_name : "Big Mac meal",
+    unit_measure_caption: "Meal",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 4957,
+    description : "Big Mac Bun Beef, Lettuce, Big Mac sauce, Onions, Pickle, Slice Cheese, Slice Fries, Coca-Cola"
+},
+{   
+    product_name : "Beer",
+    unit_measure_caption: "Glass",
+    unit_measure : 0.5,
+    calorie_per_Unit_measure : 80,
+    description : "Water, Malt grains, Hops"
+},
+{   
+    product_name : "Fish and Chips",
+    unit_measure_caption: "Meal",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 1000,
+    description : "Deep-fried fish , French fries"
+},
+{   
+    product_name : "Greek Salad",
+    unit_measure_caption: "Meal",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 250,
+    description : "Cucmber, Tomato, Peta cheese, Olive oil, Onion, Olives"
+},
+{   
+    product_name : "Sabich",
+    unit_measure_caption: "Meal",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 500,
+    description : "pita, eggplant, hard boiled eggs, Israeli salad, amba, parsley, tahini sauce, and hummus"
+},
+{   
+    product_name : "Hamin",
+    unit_measure_caption: "Meal",
+    unit_measure : 1,
+    calorie_per_Unit_measure : 2000,
+    description : "beef, vegtables, beans, grains, barley, hulled wheat"
+}]
