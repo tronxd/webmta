@@ -4,7 +4,7 @@ var Schema       = mongoose.Schema;
 var Product = new Schema({
     product_name : String,
     unit_measure_caption: String,
-    unit_measure : String,
+    unit_measure : Number,
     calorie_per_Unit_measure : Number,
     description : String
 });
