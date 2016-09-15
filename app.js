@@ -8,14 +8,7 @@ mongoose.connect('mongodb://localhost:27017/myDiet',function(err,db){
 });
 
 var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
-//usevar routes = require('./routes/index');
-//var users = require('./routes/users');
 
 var comments = require('./models/Comments');
 var mealProduct = require('./models/MealProduct');
@@ -23,60 +16,49 @@ var products = require('./models/Products');
 var topics = require('./models/Topics');
 var users = require('./models/Users');
 
+var validator = require('./Validator/Validator');
+
 var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', function(req, res, next){
+var router = express.Router();
+router.use('/', function(req, res, next){
     console.log("user send request");
     next();
 });
 
-
-
-
 // in the post function we ge all the parameter from the body using req.body and the name of the parameter
-app.route('/AddUser').post(AddUser);
-app.route('/AddTopic').post(AddTopic);
-app.route('/AddCommentForTopic').post(AddCommentForTopic);
-app.route('/AddMealProduct').post(AddMealProduct);
-app.route('/SignIn').post(SignIn);
-app.route('/AddProduct').post(AddProduct);
+router.route('/AddUser').post(AddUser);
+router.route('/AddTopic').post(AddTopic);
+router.route('/AddCommentForTopic').post(AddCommentForTopic);
+router.route('/AddMealProduct').post(AddMealProduct);
+router.route('/SignIn').post(SignIn);
+router.route('/AddProduct').post(AddProduct);
 
 // update
-app.route('/UpdateUserWeight').put(UpdateUserWeight);
+router.route('/UpdateUserWeight').put(UpdateUserWeight);
 
-// need to add get total calorie for date
-app.route('/GetUser').get(GetUser);
-app.route('/GetProducts').get(GetProduct);
-app.route('/GetTopics').get(GetTopics);
-app.route('/GetCommentsForTopic').get(GetGetCommentsForTopic);
-app.route('/DeleteUser').get(DeleteUser);
-
-app.route('/GetUserCalorieOfDate').get(GetUserCalorieOfDate);
-
-app.route('/GetAllUsers').get(function (req,res) {
+router.route('/GetUser').get(GetUser);
+router.route('/GetProducts').get(GetProduct);
+router.route('/GetTopics').get(GetTopics);
+router.route('/GetCommentsForTopic').get(GetGetCommentsForTopic);
+router.route('/DeleteUser').get(DeleteUser);
+router.route('/GetUserCalorieOfDate').get(GetUserCalorieOfDate);
+router.route('/GetAllUsers').get(function (req,res) {
    users.find({},function (err, users) {
        res.json(users)
    })
-
 });
 
-function EmptyResult(obj) {
-    console.log('in EmptyResult type: ' + typeof(obj) );
 
-    return (Object.keys(obj).length === 0 );
-}
+app.use('/api', router);
+
+
+app.listen('3000', function () {
+    console.log('listening on port 3000!');
+});
 
 
 function GetUserCalorieOfDate(req, res) {
@@ -86,34 +68,30 @@ function GetUserCalorieOfDate(req, res) {
         res.send('Iligal command missing data!');
     }
     else {
-        ValidateUserAndPreformAction(req.query.id, req, res , getAllUserCalorieOfDate);
+        validator.ValidateUserAndPreformAction(req.query.id, req, res , getAllUserCalorieOfDate);
     }
 }
 
+
 function getAllUserCalorieOfDate(req, res, user) {
-  console.log(req.query.date_to + '    ' + req.query.date_from);
-    console.log(new Date(req.query.date_to));
     mealProduct.find({user_id : req.query.id , date : {$lt: new Date(req.query.date_to)}, date: {$gt: new Date(req.query.date_from)  } },function (err, allMeals) {
-        console.log(req.query.date_from);
-        console.log(req.query.date_to);
         if (err) {
             console.log(err);
             res.send(err);
         }
-        else if (EmptyResult(allMeals) ) {
+        else if (validator.EmptyResult(allMeals) ) {
             res.send("Not Found records in this dates!");
         }
         else {
-            for(var blabla in allMeals){
-                console.log('aaaadddddddcccc');
-                console.log(allMeals[blabla]);
+            var totalCal = 0;
+            for(var meal in allMeals){
+                totalCal += allMeals[meal].total_calories;
             }
+            totalCal =  "{ \"total_cal\" : " + totalCal + "}"
+            allMeals.push( JSON.parse(totalCal));
             res.send(allMeals);
         }
-
     });
-
-
 }
 
 function DeleteUser(req, res){
@@ -123,7 +101,7 @@ function DeleteUser(req, res){
         res.send('Iligal command missing data!');
     }
     else {
-        ValidateUserAndPreformAction(req.query.id, req, res , removeAllUserData);
+        validator.ValidateUserAndPreformAction(req.query.id, req, res , removeAllUserData);
     }
 }
 
@@ -195,7 +173,7 @@ function SignIn(req, res){
                 console.log(err);
                 res.send(err);
             }
-            else if (EmptyResult(currentUser) ) {
+            else if (validator.EmptyResult(currentUser) ) {
                 res.send("User mail :" + req.body.mail + " password : " + req.body.Password + "  Not Found!");
             }
             else {
@@ -213,7 +191,7 @@ function GetProduct(req, res) {
         res.send('Iligal command missing data!');
     }
     else{
-        ValidateUserAndPreformAction(req.query.id , req, res, GetProductsByName );
+        validator.ValidateUserAndPreformAction(req.query.id , req, res, GetProductsByName );
     }
 }
 
@@ -224,7 +202,8 @@ function GetProductsByName(req, res, user) {
              res.send(err);
          }
          else {
-                 if (EmptyResult(result)) {
+             console.log(result);
+                 if (validator.EmptyResult(result)) {
                  console.log("Product name: " + req.query.product_name + " not exist!");
                 res.send("Product name: " + req.query.product_name + " not exist!");
              }
@@ -243,7 +222,6 @@ function UpdateUserWeight(req, res) {
         res.send('Iligal command missing data!');
     }
     else{
-
         users.findOneAndUpdate({_id : req.query.id}, {current_weight : req.query.current_weight, last_wieght_date :  Date.now()  },
                 {new :true}, function(err, user){
                 console.log('in UpdateUserWeight callback found user: ' + user);
@@ -251,14 +229,13 @@ function UpdateUserWeight(req, res) {
                     console.log(err);
                     res.send(err);
                 }
-                else if(user == null || EmptyResult(user)) {
+                else if(user == null || validator.EmptyResult(user)) {
                     res.send('User not id:'  + req.query.id + ' Found')
                 }
                 else {
                     return res.send(user);
                 }
             });
-
     }
 }
 
@@ -269,14 +246,14 @@ function GetGetCommentsForTopic(req, res) {
         res.send('Iligal command missing data!');
     }
     else {
-        ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
+        validator.ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
                comments.find({topic_id : req.query.topic_id }).sort({date : -1}).exec(function (commentsErr, docs) {
                    console.log("In GetGetCommentsForTopic callback ");
                    if (commentsErr) {
                        console.log(commentsErr);
                        res.send(commentsErr);
                    }
-                   else if (EmptyResult(docs)) {
+                   else if (validator.EmptyResult(docs)) {
                        res.send('For selcted Topic comments not found!');
                    }
                    else {
@@ -296,7 +273,7 @@ function GetTopics(req, res) {
         res.send('Iligal command missing data!');
     }
     else {
-        ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
+        validator.ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
                 topics.find({}).sort({date : -1}).limit(20).exec(function (commentsErr, docs) {
                     console.log("In Get Topics callback");
                     console.log(docs);
@@ -320,13 +297,13 @@ function GetUser(req, res) {
        res.send('Iligal command missing data!');
    }
    else {
-       ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user) {res.json(user); });
+       validator.ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user) {res.json(user); });
    }
 }
 
 function AddProduct(req, res) {
     console.log("In Add Product");
-    if (! IsAllDataForAddPruductExist(req)) {
+    if (! validator.IsAllDataForAddPruductExist(req)) {
         res.send('Iligal command missing data!');
     }else {
         var ProductParam = new products();
@@ -343,28 +320,17 @@ function AddProduct(req, res) {
                 res.send("product add");
             }
         });
-
     }
-
 }
 
-function IsAllDataForAddPruductExist(req)
-{
-    if( ( req.body.product_name == undefined) || (req.body.unit_measure_caption == undefined )||
-        (req.body.unit_measure == undefined )|| (req.body.calorie_per_Unit_measure == undefined )||
-        (req.body.description == undefined ))
-    {
-        return false;
-    }
-    return true;
-}
+
 // in this function we get:
 // User ID, product ID , amount and number of meal and we adding it to the mealProduct table
 // need to calculate the calorie amout amount * calorie_per_Unit_measure from products table
 function AddMealProduct(req, res) {
     console.log("In Add Meal Product");
-    if(IsAllDataForAddMealExist(req)){
-        ValidateUserAndPreformAction(req.body.user_id, req, res,
+    if(validator.IsAllDataForAddMealExist(req)){
+        validator.ValidateUserAndPreformAction(req.body.user_id, req, res,
             function(req , res, user){
 
                 var product_id = req.body.product_id;
@@ -411,24 +377,17 @@ function AddMealProduct(req, res) {
     }
 }
 
-function IsAllDataForAddMealExist(req) {
-    if((req.body.user_id == undefined)||( req.body.product_id == undefined)||( req.body.product_name == undefined) || (req.body.amount == undefined ))
-    {
-        return false;
-    }
-    return true;
-}
 // in this function we Topic ID, User ID and Text and adding it to the Comments need to insert date
 function AddCommentForTopic(req, res) {
     console.log("In Add Comment For Topic");
-    if (IsAllDataForAddCommentForTopicExist(req)) {
-        ValidateUserAndPreformAction(req.body.user_id, req, res,
+    if (validator.IsAllDataForAddCommentForTopicExist(req)) {
+        validator.ValidateUserAndPreformAction(req.body.user_id, req, res,
             function (req, res, user) {
                 topics.find({_id: req.body.topic_id}, function (err, document) {
                     if (err) {
                         res.send(err);
                     }
-                    else if (EmptyResult(document)) {
+                    else if (validator.EmptyResult(document)) {
                         res.send("Topic Id:" + req.body.topic_id + " Not Found");
                     }
                     else {
@@ -454,19 +413,11 @@ function AddCommentForTopic(req, res) {
     }
 }
 
-
-function IsAllDataForAddCommentForTopicExist(req){
-    if((req.body.user_id == undefined)||( req.body.topic_id == undefined)){
-        return false;
-    }
-    return true;
-}
-
 //in this function we user ID and text and insert in to the topics
 function AddTopic(req, res) {
     console.log("In Add Topic");
     if ((req.body.user_id != undefined) && (req.body.title != undefined) && (req.body.text != undefined)) {
-            ValidateUserAndPreformAction(req.body.user_id, req, res, function (req, res, user) {
+        validator.ValidateUserAndPreformAction(req.body.user_id, req, res, function (req, res, user) {
                 con
                 var topicsParams = new topics();
                 topicsParams.user_id = req.body.user_id;
@@ -493,7 +444,7 @@ function AddTopic(req, res) {
 function AddUser(req, res) {
     console.log('In Add user');
     console.log((req.body));
-    if(IsAllDataForAddingUser(req)) {
+    if(validator.IsAllDataForAddingUser(req)) {
         var newMail = req.body.mail;
         console.log('mail = ' + newMail);
         users.find({mail: newMail}).count(function (err, count) {
@@ -542,75 +493,3 @@ function AddUser(req, res) {
         res.send("missing data Add user failed!");
     }
 }
-
-function IsAllDataForAddingUser(req) {
-    if((req.body.user_name == undefined) || (req.body.mail == undefined) ||(req.body.Password == undefined) ||(req.body.Address.street == undefined) ||
-    (req.body.Address.city == undefined) ||(req.body.Address.state == undefined) ||(req.body.Address.country == undefined) ||(req.body.target_calories_for_day == undefined) ||
-    (req.body.start_weight == undefined) ||(req.body.target_weight == undefined) ||(req.body.height == undefined) ||
-    (req.body.sex == undefined) ||(req.body.age == undefined) ){
-
-        return false;
-    }
-
-    return true;
-}
-
-function ValidateUserAndPreformAction(id, req, res, resultCallbackFunction) {
-     console.log('in ValidateUserAndPreformAction sended id ' +  id);
-    users.find({_id: id}, function (err, selectedUser) {
-        if (err) {
-
-            if (err.name == "CastError" && err.kind == "ObjectId") {
-                res.send("the id sent in the input is in illegal format please Sign In again to get the corrct id in the correct format.\nThanks.");
-            }
-            else {
-                res.send(err);
-            }
-        }
-        else {
-            if (EmptyResult(selectedUser)) {
-                res.send("User Not Found")
-            }
-            else {
-
-                if (resultCallbackFunction) {
-                    resultCallbackFunction(req, res, selectedUser);
-                }
-            }
-        }
-    });
-}
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.render('error', {
-      message: err.message,
-      error: err
-    });
-  });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.render('error', {
-    message: err.message,
-    error: {}
-  });
-});
-
-
-module.exports = app;
