@@ -3,7 +3,7 @@
  */
 var users = require("../models/Users");
 
-
+//validate that a user exist in our database
 function ValidateUserAndPreformAction(id, req, res, resultCallbackFunction) {
     console.log('in ValidateUserAndPreformAction sended id ' +  id);
     users.find({_id: id}, function (err, selectedUser) {
@@ -30,6 +30,7 @@ function ValidateUserAndPreformAction(id, req, res, resultCallbackFunction) {
     });
 }
 
+//validate the AddUser function (checks that all data is defined)
 function IsAllDataForAddingUser(req) {
     if((req.body.user_name == undefined) || (req.body.mail == undefined) ||(req.body.Password == undefined) ||(req.body.Address.street == undefined) ||
         (req.body.Address.city == undefined) ||(req.body.Address.state == undefined) ||(req.body.Address.country == undefined) ||(req.body.target_calories_for_day == undefined) ||
@@ -42,6 +43,7 @@ function IsAllDataForAddingUser(req) {
     return true;
 }
 
+//validate that a comment of a topic is not empty
 function IsAllDataForAddCommentForTopicExist(req){
     if((req.body.user_id == undefined)||( req.body.topic_id == undefined)){
         return false;
@@ -49,6 +51,7 @@ function IsAllDataForAddCommentForTopicExist(req){
     return true;
 }
 
+//validate that a new added meal of a user is not empty
 function IsAllDataForAddMealExist(req) {
     if((req.body.user_id == undefined)||( req.body.product_id == undefined)||( req.body.product_name == undefined) || (req.body.amount == undefined ))
     {
@@ -57,6 +60,7 @@ function IsAllDataForAddMealExist(req) {
     return true;
 }
 
+//validate that a new added product is not empty
 function IsAllDataForAddPruductExist(req) {
     if( ( req.body.product_name == undefined) || (req.body.unit_measure_caption == undefined )||
         (req.body.unit_measure == undefined )|| (req.body.calorie_per_Unit_measure == undefined )||
