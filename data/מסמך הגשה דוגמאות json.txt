@@ -1,0 +1,100 @@
+users :   57dc4aebdbf5a34501ac2457     , 57dc516dbbb52245993d5c07
+pruducts :  57db92357d42af3c9fffb5da - Pizza , 57db92c37d42af3c9fffb5db - Hamin, 57dc461c8379b844c4c932f0 - 	Hummus
+			57dc46528379b844c4c932f1 - Rise , 57dc467f8379b844c4c932f2 - Big Mac meal , 57dc46aa8379b844c4c932f3 - Beer
+			57dc46da8379b844c4c932f4 - Fish and Chips , 57dc46fa8379b844c4c932f5 - Greek Salad
+
+			
+			
+			
+1.
+
+		 {
+		   "user_name" : "Barack Obama",
+			"mail" : "obama@whitehouse.com",
+			"Password" : "NSAPassword",
+			"Address" : {
+				"street" : "1600 Pennsylvania Ave NW",
+				"city": "Washington",
+				"state": "DC",
+				"country": "USA"
+			},   
+			"target_calories_for_day" : 1700,
+			"start_weight" : 85,
+			"target_weight" : 70,
+			"height": 182,
+			"sex": "Male",
+			"age": 24
+	}
+
+	
+	
+2.
+
+		{
+			"mail": "obama@whitehouse.com",
+			"Password" : "NSAPassword"
+		}
+	
+
+	
+3.
+
+		{
+			"user_id" : "{id}",
+			"product_id" : "57db92357d42af3c9fffb5da",
+			"product_name" :"Pizza",
+			"amount" : 3
+		}
+
+		{
+			"user_id" : "{id}",
+			"product_id" : "57db92c37d42af3c9fffb5db",
+			"product_name" :"Hamin",
+			"amount" : 3
+		}
+
+
+
+	מוכנות דוגמאות
+			
+		{
+			"user_id" : "57dc516dbbb52245993d5c07",
+			"product_id" : "57db92357d42af3c9fffb5da",
+			"product_name" :"Pizza",
+			"amount" : 3
+		}
+		{
+			"user_id" : "57dc516dbbb52245993d5c07",
+			"product_id" : "57db92c37d42af3c9fffb5db",
+			"product_name" :"Hamin",
+			"amount" : 2
+		}
+
+
+		
+4.
+		{
+			"user_id" : "{id}",
+			"title" :"bummer",
+			"text": "I ate too much"
+		}
+		
+
+		
+		
+5.
+
+		{
+			"user_id" : "{id}",
+			"topic_id":"{topic_id}",
+			"text" : "now I will stop"
+		}
+		
+		
+		דוגמה 
+		
+		{
+			"user_id" : "57dc4aebdbf5a34501ac2457",
+			"topic_id":"57db9da63a43563d587519a1",
+			"text" : "good luck"
+		}
