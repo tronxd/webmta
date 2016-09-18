@@ -43,7 +43,7 @@ router.route('/UpdateUserWeight').put(UpdateUserWeight);
 router.route('/GetUser').get(GetUser);
 router.route('/GetProducts').get(GetProduct);
 router.route('/GetTopics').get(GetTopics);
-router.route('/GetCommentsForTopic').get(GetGetCommentsForTopic);
+router.route('/GetCommentsForTopic').get(GetCommentsForTopic);
 router.route('/DeleteUser').get(DeleteUser);
 router.route('/GetUserCalorieOfDate').get(GetUserCalorieOfDate);
 router.route('/GetAllUsers').get(function (req,res) {
@@ -51,6 +51,12 @@ router.route('/GetAllUsers').get(function (req,res) {
        res.json(users)
    })
 });
+router.route('/GetAllProducts').get(function (req,res) {
+    products.find({},function (err, users) {
+        res.json(users)
+    })
+});
+
 
 
 app.use('/api', router);
@@ -240,14 +246,14 @@ function UpdateUserWeight(req, res) {
 }
 
 // in the function we get the topic ID and user ID the return all the comment for the topic from Comments table
-function GetGetCommentsForTopic(req, res) {
+function GetCommentsForTopic(req, res) {
     console.log("In Get Comments For Topics");
     if ((req.query.id == undefined) || (req.query.topic_id == undefined)) {
         res.send('Iligal command missing data!');
     }
     else {
         validator.ValidateUserAndPreformAction(req.query.id , req, res, function (req , res , user){
-               comments.find({topic_id : req.query.topic_id }).sort({date : -1}).exec(function (commentsErr, docs) {
+               comments.find({topic_id : req.query.topic_id }).sort({date : 1}).exec(function (commentsErr, docs) {
                    console.log("In GetGetCommentsForTopic callback ");
                    if (commentsErr) {
                        console.log(commentsErr);
@@ -317,7 +323,7 @@ function AddProduct(req, res) {
                 res.send(err);
             }
             else {
-                res.send("product add");
+                res.json({"message":"product added"});
             }
         });
     }
@@ -338,7 +344,7 @@ function AddMealProduct(req, res) {
                     if (err) {
                         res.send(err);
                     }
-                    if (EmptyResult(productdoc)) {
+                    if (validator.EmptyResult(productdoc)) {
                         res.send("product Not Found")
                     }
                     else {
@@ -418,7 +424,6 @@ function AddTopic(req, res) {
     console.log("In Add Topic");
     if ((req.body.user_id != undefined) && (req.body.title != undefined) && (req.body.text != undefined)) {
         validator.ValidateUserAndPreformAction(req.body.user_id, req, res, function (req, res, user) {
-                con
                 var topicsParams = new topics();
                 topicsParams.user_id = req.body.user_id;
                 topicsParams.user_name = user.user_name;
@@ -478,7 +483,7 @@ function AddUser(req, res) {
                             res.send(err);
                         }
                         else {
-                            res.json({message: 'New User create!'});
+                            res.json({"message":"new user added" });
                         }
                     });
                 }
